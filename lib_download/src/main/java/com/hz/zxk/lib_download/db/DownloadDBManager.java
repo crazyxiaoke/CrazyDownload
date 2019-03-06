@@ -93,6 +93,21 @@ public class DownloadDBManager {
     }
 
     /**
+     * 查询单个线程下载信息
+     * @param url
+     * @param threadId
+     * @return
+     */
+    public DownloadInfo queryOne(String url,String threadId){
+        DaoMaster daoMaster=new DaoMaster(getReadableDatabase());
+        DaoSession daoSession=daoMaster.newSession();
+        DownloadInfoDao dao=daoSession.getDownloadInfoDao();
+        QueryBuilder<DownloadInfo> qb=dao.queryBuilder();
+        qb.where(DownloadInfoDao.Properties.Url.eq(url),DownloadInfoDao.Properties.ThreadId.eq(threadId));
+        return qb.unique();
+    }
+
+    /**
      * 插入单个线程下载信息
      *
      * @param donwloadInfo

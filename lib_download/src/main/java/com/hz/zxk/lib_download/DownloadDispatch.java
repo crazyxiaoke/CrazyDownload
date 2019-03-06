@@ -47,13 +47,17 @@ public class DownloadDispatch {
     /**
      * 线程池
      */
-    private ThreadPoolExecutor executorService;
+    private static ThreadPoolExecutor executorService;
 
     /**
      * 单例
      */
     public void getInstance() {
         // TODO implement here
+    }
+
+    public static ThreadPoolExecutor getExecutorService(){
+        return executorService;
     }
 
     /**

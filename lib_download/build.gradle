@@ -34,4 +34,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation("com.squareup.okhttp3:okhttp:3.13.1")
     implementation 'org.greenrobot:greendao:3.2.2'
+    implementation 'com.github.crazyxiaoke:CommonUtils:1.0.0'
 }
