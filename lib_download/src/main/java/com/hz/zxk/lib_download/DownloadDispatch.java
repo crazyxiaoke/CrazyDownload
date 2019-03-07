@@ -156,7 +156,11 @@ public class DownloadDispatch {
                     //移除取消下载的任务
                     removeTask(runningTasks, token);
                     //下载取消
-                    callback.cancel();
+                    synchronized (DownloadDispatch.class){
+                        if(callback!=null){
+                            callback.cancel();
+                        }
+                    }
                     //执行下一个下载任务
                     nextDownload();
                     //移除已取消的回调
@@ -164,12 +168,21 @@ public class DownloadDispatch {
                     break;
                 case DownloadStatus.PROGRESS:
                     //更新进度
-                    int progress = bundle.getInt(HandlerBuildKey.PROGRESS);
-                    callback.progress(progress);
+                    synchronized (DownloadDispatch.class){
+                        if(callback!=null){
+                            int progress = bundle.getInt(HandlerBuildKey.PROGRESS);
+                            callback.progress(progress);
+                        }
+                    }
                     break;
                 case DownloadStatus.SPEEDNETWORK:
-                    String speedNetwork = bundle.getString(HandlerBuildKey.SPEEDNETWORK);
-                    callback.speedNetwork(speedNetwork);
+                    //下载网速
+                    synchronized (DownloadDispatch.class){
+                        if(callback!=null){
+                            String speedNetwork = bundle.getString(HandlerBuildKey.SPEEDNETWORK);
+                            callback.speedNetwork(speedNetwork);
+                        }
+                    }
                     break;
             }
             return false;

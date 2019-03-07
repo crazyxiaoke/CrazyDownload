@@ -123,7 +123,7 @@ public class DownloadTask {
                         if (fileLength == contentLength) {
                             //下载完成，发送消息
                             mBundle.clear();
-                            mBundle.putString(HandlerBuildKey.FILEPATH,filepath+filename);
+                            mBundle.putString(HandlerBuildKey.FILEPATH, filepath + filename);
                             sendMessage(DownloadStatus.SUCCESS, mBundle);
                         }
                     }
@@ -286,6 +286,8 @@ public class DownloadTask {
      */
     public void stop() {
         // TODO implement here
+        stopAll();
+        sendMessage(DownloadStatus.CANCEL, new Bundle());
     }
 
     /**
@@ -306,12 +308,12 @@ public class DownloadTask {
     /**
      * 计算网络速度
      */
-    private void speedNetwork(){
+    private void speedNetwork() {
         if (System.currentTimeMillis() - lastSpeedNetworkTime >= 1000 &
                 totalProgress < contentLength) {
             lastSpeedNetworkTime = System.currentTimeMillis();
             mBundle.clear();
-            mBundle.putString(HandlerBuildKey.SPEEDNETWORK, NetworkUtils.networkSpeed(downloadSize)+"/s");
+            mBundle.putString(HandlerBuildKey.SPEEDNETWORK, NetworkUtils.networkSpeed(downloadSize) + "/s");
             sendMessage(DownloadStatus.SPEEDNETWORK, mBundle);
             downloadSize = 0;
         }
@@ -319,9 +321,10 @@ public class DownloadTask {
 
     /**
      * 获取唯一标识符
+     *
      * @return
      */
-    public String getToken(){
+    public String getToken() {
         return token;
     }
 
