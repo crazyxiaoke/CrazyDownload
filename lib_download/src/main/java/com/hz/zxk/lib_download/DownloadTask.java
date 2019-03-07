@@ -83,6 +83,7 @@ public class DownloadTask {
      */
     private long lastSpeedNetworkTime = 0;
     private Bundle mBundle;
+    private boolean success=false;
 
     public DownloadTask(int maxThreadSize, String url, String token, String filename,
                         String filepath, Handler handler) {
@@ -117,14 +118,19 @@ public class DownloadTask {
                 case DownloadStatus.THEARDSUCCESS:
                     //每个线程完成后，获取文件大小
                     //判断是否整个文件已经下载完成
-                    File file = new File(filepath + filename);
-                    if (file.exists()) {
-                        long fileLength = file.length();
-                        if (fileLength == contentLength) {
-                            //下载完成，发送消息
-                            mBundle.clear();
-                            mBundle.putString(HandlerBuildKey.FILEPATH, filepath + filename);
-                            sendMessage(DownloadStatus.SUCCESS, mBundle);
+                    synchronized (DownloadTask.class){
+                        if(!success){
+                            File file = new File(filepath + filename);
+                            if (file.exists()) {
+                                long fileLength = file.length();
+                                if (fileLength == contentLength) {
+                                    //下载完成，发送消息
+                                    mBundle.clear();
+                                    mBundle.putString(HandlerBuildKey.FILEPATH, filepath + filename);
+                                    sendMessage(DownloadStatus.SUCCESS, mBundle);
+                                    success=true;
+                                }
+                            }
                         }
                     }
                     break;

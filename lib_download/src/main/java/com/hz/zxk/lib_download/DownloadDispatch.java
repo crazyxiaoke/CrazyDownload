@@ -32,8 +32,6 @@ public class DownloadDispatch {
 
     private static DownloadDispatch sInstance;
 
-    private Context context;
-
     /**
      * 配置参数
      */
@@ -94,8 +92,7 @@ public class DownloadDispatch {
      * @param context
      * @param config  配置参数
      */
-    public void init(Context context, @NotNull DownloadConfig config) {
-        this.context = context;
+    public void init(Context context, @NonNull DownloadConfig config) {
         this.config = config;
         //数据库初始化
         DownloadDBManager.getsInstance().init(context);
@@ -168,20 +165,16 @@ public class DownloadDispatch {
                     break;
                 case DownloadStatus.PROGRESS:
                     //更新进度
-                    synchronized (DownloadDispatch.class){
-                        if(callback!=null){
-                            int progress = bundle.getInt(HandlerBuildKey.PROGRESS);
-                            callback.progress(progress);
-                        }
+                    if(callback!=null){
+                        int progress = bundle.getInt(HandlerBuildKey.PROGRESS);
+                        callback.progress(progress);
                     }
                     break;
                 case DownloadStatus.SPEEDNETWORK:
                     //下载网速
-                    synchronized (DownloadDispatch.class){
-                        if(callback!=null){
-                            String speedNetwork = bundle.getString(HandlerBuildKey.SPEEDNETWORK);
-                            callback.speedNetwork(speedNetwork);
-                        }
+                    if(callback!=null){
+                        String speedNetwork = bundle.getString(HandlerBuildKey.SPEEDNETWORK);
+                        callback.speedNetwork(speedNetwork);
                     }
                     break;
             }
