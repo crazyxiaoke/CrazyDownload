@@ -49,4 +49,10 @@ public interface DownloadCallback {
      */
     void progress(int progress);
 
+    /**
+     * 下载网速
+     * @param network
+     */
+    void speedNetwork(String network);
+
 }

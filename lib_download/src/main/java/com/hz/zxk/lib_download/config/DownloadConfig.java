@@ -1,21 +1,21 @@
 package com.hz.zxk.lib_download.config;
 
+import android.content.Context;
+
+import com.hz.zxk.commonutils.utils.FileUtils;
+import com.hz.zxk.commonutils.utils.StringUtils;
+
 import java.util.concurrent.TimeUnit;
 
 /**
  * 配置类
  */
 public class DownloadConfig {
-
+    private Context context;
     /**
-     * 核心线程数
+     * 最大下载数
      */
-    private int coreThreadSize;
-
-    /**
-     * 最大线程数
-     */
-    private int maxThreadSize;
+    private int maxDownloadSize;
 
     /**
      * 给每个下载任务分配的线程数
@@ -37,52 +37,55 @@ public class DownloadConfig {
      */
     private TimeUnit unit;
 
+    private boolean daemon;
+
     /**
      * Default constructor
      */
-    private DownloadConfig(Builder builder) {
-        coreThreadSize = builder.coreThreadSize;
-        maxThreadSize = builder.maxThreadSize;
-        downloadThreadSize = builder.downloadThreadSize;
-        defaultFilepath = builder.defaultFilepath;
-        keepAliveTime = builder.keepAliveTime;
-        unit = builder.unit;
+    private DownloadConfig(Context context, Builder builder) {
+        this.context = context;
+        if (builder != null) {
+            this.maxDownloadSize = builder.maxDownloadSize;
+            this.downloadThreadSize = builder.downloadThreadSize;
+            this.defaultFilepath = builder.defaultFilepath;
+            this.keepAliveTime = builder.keepAliveTime;
+            this.unit = builder.unit;
+            this.daemon = builder.deamon;
+        }
     }
 
-    public int getCoreThreadSize() {
-        return coreThreadSize;
-    }
-
-    public int getMaxThreadSize() {
-        return maxThreadSize;
+    public int getMaxDownloadSize() {
+        return maxDownloadSize <= 0 ? 3 : maxDownloadSize;
     }
 
     public int getDownloadThreadSize() {
-        return downloadThreadSize;
+        return downloadThreadSize <= 0 ? 4 : downloadThreadSize;
     }
 
     public String getDefaultFilepath() {
+        if (StringUtils.isEmpty(defaultFilepath)) {
+            return FileUtils.getRootCachePath(context);
+        }
         return defaultFilepath;
     }
 
     public long getKeepAliveTime() {
-        return keepAliveTime;
+        return keepAliveTime <= 0 ? 60 : keepAliveTime;
     }
 
     public TimeUnit getUnit() {
-        return unit;
+        return unit == null ? TimeUnit.MICROSECONDS : unit;
+    }
+
+    public boolean getDeamon() {
+        return daemon;
     }
 
     public static class Builder {
         /**
-         * 核心线程数
+         * 最大下载数
          */
-        private int coreThreadSize;
-
-        /**
-         * 最大线程数
-         */
-        private int maxThreadSize;
+        private int maxDownloadSize;
 
         /**
          * 给每个下载任务分配的线程数
@@ -95,7 +98,7 @@ public class DownloadConfig {
         private String defaultFilepath;
 
         /**
-         *
+         * 线程
          */
         private long keepAliveTime;
 
@@ -105,18 +108,12 @@ public class DownloadConfig {
         private TimeUnit unit;
 
         /**
-         * @return
+         * 是否启动线程保护
          */
-        public Builder setCoreThreadSize(int coreThreadSize) {
-            this.coreThreadSize = coreThreadSize;
-            return this;
-        }
+        private boolean deamon;
 
-        /**
-         * @return
-         */
-        public Builder setMaxThreadSize(int maxThreadSize) {
-            this.maxThreadSize = maxThreadSize;
+        public Builder setMaxDownloadSize(int maxDownloadSize) {
+            this.maxDownloadSize = maxDownloadSize;
             return this;
         }
 
@@ -136,14 +133,18 @@ public class DownloadConfig {
             return this;
         }
 
+        public Builder setDeamon(boolean deamon) {
+            this.deamon = deamon;
+            return this;
+        }
+
         /**
          * 创建
          */
-        public DownloadConfig build() {
+        public DownloadConfig build(Context context) {
             // TODO implement here
-            return new DownloadConfig(this);
+            return new DownloadConfig(context, this);
         }
-
 
     }
 
