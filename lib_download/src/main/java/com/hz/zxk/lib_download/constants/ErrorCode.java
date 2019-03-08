@@ -18,35 +18,21 @@ package com.hz.zxk.lib_download.constants;
  * 　　　　┗┓┓┏━┳┓┏┛
  * 　　　　　┃┫┫　┃┫┫
  * <p>
- * Created by zxk on 19-3-7.
+ * Created by zxk on 19-3-8.
  */
-public class HandlerBuildKey {
+public class ErrorCode {
     /**
-     * 唯一标识符
+     * 未知错误
      */
-    public static final String TOKEN="token";
-    /**
-     * 进度
-     */
-    public static final String PROGRESS="progress";
+    public static final int UNKOWN_ERROR_CODE = 10001;
 
     /**
-     * 网速
+     * 网络错误
      */
-    public static final String SPEEDNETWORK="speedNetwork";
+    public static final int NETWORK_ERROR_CODE = 10002;
 
     /**
-     * 文件路径
+     * 文件长度为-1;
      */
-    public static final String FILEPATH="filePath";
-
-    /**
-     * 错误码
-     */
-    public static final String ERRORCODE="errorCode";
-
-    /**
-     * 错误信息
-     */
-    public static final String ERRORMSG="errorMsg";
+    public static final int CONTENT_LENGTH_ERROR_CODE = 10003;
 }

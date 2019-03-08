@@ -3,9 +3,11 @@ package com.hz.zxk.lib_download;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import com.hz.zxk.commonutils.utils.NetworkUtils;
 import com.hz.zxk.lib_download.callback.DownloadCallback;
+import com.hz.zxk.lib_download.constants.ErrorCode;
 import com.hz.zxk.lib_download.constants.HandlerBuildKey;
 import com.hz.zxk.lib_download.db.DownloadDBManager;
 import com.hz.zxk.lib_download.db.DownloadInfo;
@@ -83,10 +85,11 @@ public class DownloadTask {
      */
     private long lastSpeedNetworkTime = 0;
     private Bundle mBundle;
-    private boolean success=false;
+    private boolean success = false;
 
     public DownloadTask(int maxThreadSize, String url, String token, String filename,
                         String filepath, Handler handler) {
+        Log.d("TAG", "创建下载任务");
         this.maxThreadSize = maxThreadSize;
         this.token = token;
         this.url = url;
@@ -108,7 +111,6 @@ public class DownloadTask {
                         totalProgress += (int) msg.obj;
                         downloadSize += (int) msg.obj;
                         //发送消息
-                        mBundle.clear();
                         mBundle.putInt(HandlerBuildKey.PROGRESS, (int) (totalProgress * 100 / contentLength));
                         sendMessage(DownloadStatus.PROGRESS, mBundle);
                         //发送网速
@@ -118,17 +120,17 @@ public class DownloadTask {
                 case DownloadStatus.THEARDSUCCESS:
                     //每个线程完成后，获取文件大小
                     //判断是否整个文件已经下载完成
-                    synchronized (DownloadTask.class){
-                        if(!success){
+                    synchronized (DownloadTask.class) {
+                        if (!success) {
                             File file = new File(filepath + filename);
                             if (file.exists()) {
                                 long fileLength = file.length();
+                                Log.d("TAG", "fileLength=" + fileLength);
                                 if (fileLength == contentLength) {
                                     //下载完成，发送消息
-                                    mBundle.clear();
                                     mBundle.putString(HandlerBuildKey.FILEPATH, filepath + filename);
                                     sendMessage(DownloadStatus.SUCCESS, mBundle);
-                                    success=true;
+                                    success = true;
                                 }
                             }
                         }
@@ -139,7 +141,7 @@ public class DownloadTask {
                     synchronized (DownloadTask.class) {
                         if (downloadRunnables != null && downloadRunnables.size() > 0) {
                             stopAll();
-                            mBundle.clear();
+                            mBundle.putInt(HandlerBuildKey.ERRORCODE, msg.arg1);
                             mBundle.putString(HandlerBuildKey.ERRORMSG, (String) msg.obj);
                             sendMessage(DownloadStatus.FAIL, mBundle);
                         }
@@ -194,6 +196,7 @@ public class DownloadTask {
             @Override
             public void onFailure(Call call, IOException e) {
                 Bundle bundle = new Bundle();
+                bundle.putInt(HandlerBuildKey.ERRORCODE, ErrorCode.UNKOWN_ERROR_CODE);
                 bundle.putString(HandlerBuildKey.ERRORMSG, e.getMessage());
                 sendMessage(DownloadStatus.FAIL, bundle);
             }
@@ -203,9 +206,9 @@ public class DownloadTask {
                 if (response.isSuccessful()) {
                     contentLength = response.body().contentLength();
                     if (contentLength == -1) {
-                        Bundle bundle = new Bundle();
-                        bundle.putString(HandlerBuildKey.ERRORMSG, "无法获取文件大小");
-                        sendMessage(DownloadStatus.FAIL, bundle);
+                        mBundle.putInt(HandlerBuildKey.ERRORCODE, ErrorCode.CONTENT_LENGTH_ERROR_CODE);
+                        mBundle.putString(HandlerBuildKey.ERRORMSG, "无法获取文件大小");
+                        sendMessage(DownloadStatus.FAIL, mBundle);
                     } else {
                         //执行下载
                         distributionSize(contentLength);
@@ -269,6 +272,8 @@ public class DownloadTask {
         //创建线程
         DownloadRunnable runnable = new DownloadRunnable(url, threadId, startIndex, endIndex
                 , filename, filepath, threadHandler);
+        //加入线程列表
+        downloadRunnables.add(runnable);
         //加入到线程池，并执行下载
         DownloadDispatch.getInstance().getExecutorService().execute(runnable);
     }
@@ -277,8 +282,11 @@ public class DownloadTask {
      * 停止全部线程
      */
     private void stopAll() {
+        Log.d("TAG", "TASK停在下载");
         if (downloadRunnables != null && downloadRunnables.size() > 0) {
+            Log.d("TAG", "TASK 循环");
             for (DownloadRunnable downloadRunnable : downloadRunnables) {
+                Log.d("TAG", "TASK 找到runnable");
                 downloadRunnable.stop();
             }
             downloadRunnables.clear();
@@ -318,7 +326,6 @@ public class DownloadTask {
         if (System.currentTimeMillis() - lastSpeedNetworkTime >= 1000 &
                 totalProgress < contentLength) {
             lastSpeedNetworkTime = System.currentTimeMillis();
-            mBundle.clear();
             mBundle.putString(HandlerBuildKey.SPEEDNETWORK, NetworkUtils.networkSpeed(downloadSize) + "/s");
             sendMessage(DownloadStatus.SPEEDNETWORK, mBundle);
             downloadSize = 0;

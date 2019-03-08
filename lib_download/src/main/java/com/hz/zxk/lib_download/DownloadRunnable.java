@@ -2,7 +2,9 @@ package com.hz.zxk.lib_download;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
+import com.hz.zxk.lib_download.constants.ErrorCode;
 import com.hz.zxk.lib_download.db.DownloadDBManager;
 import com.hz.zxk.lib_download.db.DownloadInfo;
 import com.hz.zxk.lib_download.http.HttpManager;
@@ -128,13 +130,16 @@ public class DownloadRunnable implements Runnable{
                 }
             }else{
                 //发送错误消息
-                sendMessage(DownloadStatus.FAIL,"response is null");
+
+                sendMessage(DownloadStatus.FAIL,"response is null",ErrorCode.NETWORK_ERROR_CODE);
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Log.e("TAG","出错了="+e.getMessage());
             //发送错误消息
-            sendMessage(DownloadStatus.FAIL,e.getMessage());
+            sendMessage(DownloadStatus.FAIL,e.getMessage(), ErrorCode.UNKOWN_ERROR_CODE);
         }
+        Log.d("TAG",Thread.currentThread().getName()+"执行结束");
     }
 
     /**
@@ -142,10 +147,13 @@ public class DownloadRunnable implements Runnable{
      * @param what
      * @param obj
      */
-    private void sendMessage(int what,Object obj){
+    private void sendMessage(int what,Object obj,int... args){
         Message message=new Message();
         message.what=what;
         message.obj=obj;
+        if(args!=null&&args.length==1){
+            message.arg1=args[0];
+        }
         handler.sendMessage(message);
     }
 
@@ -153,6 +161,7 @@ public class DownloadRunnable implements Runnable{
      * 
      */
     public void stop() {
+        Log.d("TAG","停止下载");
         downloadStatus=STATUS_STOP;
     }
 

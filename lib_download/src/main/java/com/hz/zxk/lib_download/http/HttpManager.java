@@ -2,6 +2,7 @@ package com.hz.zxk.lib_download.http;
 
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -18,8 +19,12 @@ public class HttpManager {
 
     private OkHttpClient httpClient;
 
-    public HttpManager() {
+    private HttpManager() {
         httpClient = new OkHttpClient();
+        httpClient.newBuilder()
+                .connectTimeout(10000, TimeUnit.SECONDS)
+                .readTimeout(600000, TimeUnit.SECONDS)
+                .build();
     }
 
     /**

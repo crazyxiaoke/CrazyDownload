@@ -32,7 +32,8 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         Stetho.initializeWithDefaults(this);
-        DownloadConfig config = new DownloadConfig.Builder().build(this);
+        DownloadConfig config = new DownloadConfig.Builder()
+                .setDownloadThreadSize(3).build(this);
         DownloadDispatch.getInstance().init(this, config);
     }
 }

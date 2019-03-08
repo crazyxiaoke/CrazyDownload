@@ -24,6 +24,9 @@ public class DownloadDBManager {
 
     private DaoMaster.DevOpenHelper mOpenHelper;
 
+    private DownloadDBManager(){
+
+    }
 
     /**
      * 初始化

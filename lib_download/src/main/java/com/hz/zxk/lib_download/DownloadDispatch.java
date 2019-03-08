@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.hz.zxk.commonutils.utils.SignUtils;
 import com.hz.zxk.commonutils.utils.StringUtils;
@@ -88,6 +89,14 @@ public class DownloadDispatch {
 
     /**
      * 初始化
+     * @param context
+     */
+    public void init(Context context){
+        this.init(context,new DownloadConfig.Builder().build(context));
+    }
+
+    /**
+     * 初始化
      *
      * @param context
      * @param config  配置参数
@@ -110,14 +119,16 @@ public class DownloadDispatch {
                     executorService = new ThreadPoolExecutor(config.getMaxDownloadSize() * config.getDownloadThreadSize(),
                             config.getMaxDownloadSize() * config.getDownloadThreadSize(), config.getKeepAliveTime(), config.getUnit(),
                             new LinkedBlockingDeque<Runnable>(), new ThreadFactory() {
+                        AtomicInteger integer = new AtomicInteger(1);
+
                         @Override
                         public Thread newThread(@NonNull Runnable r) {
-                            AtomicInteger integer = new AtomicInteger(0);
-                            Thread thread = new Thread(r, "thread#" + integer.getAndIncrement());
+                            Thread thread = new Thread(r, "download thread-" + integer.getAndIncrement());
                             thread.setDaemon(config.getDeamon());
                             return thread;
                         }
                     });
+                    executorService.allowCoreThreadTimeOut(true);
                 }
             }
         }
@@ -136,6 +147,7 @@ public class DownloadDispatch {
             DownloadCallback callback = downloadCallbacks.get(token);
             switch (what) {
                 case DownloadStatus.SUCCESS:
+                    Log.d("TAG", token + ":文件下在成功");
                     //下载成功
                     String filepath = bundle.getString(HandlerBuildKey.FILEPATH);
                     if (StringUtils.isNotEmpty(filepath)) {
@@ -153,8 +165,8 @@ public class DownloadDispatch {
                     //移除取消下载的任务
                     removeTask(runningTasks, token);
                     //下载取消
-                    synchronized (DownloadDispatch.class){
-                        if(callback!=null){
+                    synchronized (DownloadDispatch.class) {
+                        if (callback != null) {
                             callback.cancel();
                         }
                     }
@@ -165,18 +177,25 @@ public class DownloadDispatch {
                     break;
                 case DownloadStatus.PROGRESS:
                     //更新进度
-                    if(callback!=null){
+                    if (callback != null) {
                         int progress = bundle.getInt(HandlerBuildKey.PROGRESS);
                         callback.progress(progress);
                     }
                     break;
                 case DownloadStatus.SPEEDNETWORK:
                     //下载网速
-                    if(callback!=null){
+                    if (callback != null) {
                         String speedNetwork = bundle.getString(HandlerBuildKey.SPEEDNETWORK);
                         callback.speedNetwork(speedNetwork);
                     }
                     break;
+                case DownloadStatus.FAIL:
+                    //下载错误
+                    if (callback != null) {
+                        int code = bundle.getInt(HandlerBuildKey.ERRORCODE);
+                        String errorMsg = bundle.getString(HandlerBuildKey.ERRORMSG);
+                        callback.fail(code, errorMsg);
+                    }
             }
             return false;
         }
@@ -219,8 +238,9 @@ public class DownloadDispatch {
         String token = SignUtils.getMD5(url);
         //把callback存入map中，后续通过token来获取callback
         downloadCallbacks.put(token, callback);
-        DownloadTask task = new DownloadTask(config.getMaxDownloadSize(), url, token, fileName, filepath
+        DownloadTask task = new DownloadTask(config.getDownloadThreadSize(), url, token, fileName, filepath
                 , mHandler);
+        Log.d("TAG", task.toString());
         if (runningTasks.size() < config.getMaxDownloadSize()) {
             //下载数没有达到最大下载数，直接执行下载
             runningTasks.add(task);
