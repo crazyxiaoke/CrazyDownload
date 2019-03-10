@@ -6,6 +6,8 @@ import com.facebook.stetho.Stetho;
 import com.hz.zxk.lib_download.DownloadDispatch;
 import com.hz.zxk.lib_download.config.DownloadConfig;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * 　　┏┓　　　　┏┓
  * 　┏┛┻━━━━┛┻┓
@@ -32,8 +34,14 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         Stetho.initializeWithDefaults(this);
-        DownloadConfig config = new DownloadConfig.Builder()
-                .setDownloadThreadSize(3).build(this);
-        DownloadDispatch.getInstance().init(this, config);
+//        DownloadConfig config = new DownloadConfig.Builder()
+//                .setMaxDownloadSize(3)
+//                .setDownloadThreadSize(3)
+//                .setDeamon(true)
+//                .setDefaultFilePath("/")
+//                .setKeepAliveTime(60)
+//                .setUnit(TimeUnit.MILLISECONDS)
+//                .build(this);
+        DownloadDispatch.getInstance().init(this);
     }
 }

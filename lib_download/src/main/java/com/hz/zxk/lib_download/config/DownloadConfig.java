@@ -138,6 +138,16 @@ public class DownloadConfig {
             return this;
         }
 
+        public Builder setKeepAliveTime(long time){
+            this.keepAliveTime=keepAliveTime;
+            return this;
+        }
+
+        public Builder setUnit(TimeUnit unit){
+            this.unit=unit;
+            return this;
+        }
+
         /**
          * 创建
          */
